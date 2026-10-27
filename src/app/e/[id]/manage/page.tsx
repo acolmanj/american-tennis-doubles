@@ -31,7 +31,7 @@ export default function ManagePage() {
   }
   return (
     <>
-      <Header title={data.event.name} subtitle="Manage night" back={`/e/${id}`} />
+      <Header title={data.event.name} subtitle="Manage night" back={`/e/${id}`} wide />
       <Page wide>
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
           <div>

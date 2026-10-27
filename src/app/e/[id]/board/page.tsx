@@ -31,7 +31,7 @@ export default function BoardPage() {
 
   return (
     <>
-      <Header title={event.name} subtitle="All rounds" back={`/e/${id}`} />
+      <Header title={event.name} subtitle="All rounds" back={`/e/${id}`} wide />
       <Page wide>
         {!rounds.length ? (
           <p className="text-lg text-muted">The rounds haven&apos;t been drawn yet.</p>

@@ -8,10 +8,10 @@ export function Crest({ size = 48 }: { size?: number }) {
   return <Image src="/crest.webp" alt="Charleville Lawn Tennis Club crest" width={size} height={size} priority />;
 }
 
-export function Header({ title, subtitle, back }: { title?: string; subtitle?: string; back?: string }) {
+export function Header({ title, subtitle, back, wide }: { title?: string; subtitle?: string; back?: string; wide?: boolean }) {
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-black/95 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
+      <div className={`mx-auto flex ${wide ? "max-w-7xl" : "max-w-xl"} items-center gap-3 px-4 py-3`}>
         <Link href={back ?? "/"} aria-label="Back" className="shrink-0">
           <Crest size={44} />
         </Link>
@@ -33,17 +33,17 @@ export function Page({ children, wide }: { children: React.ReactNode; wide?: boo
 export function LevelBadge({ level, showLabel }: { level: Level; showLabel?: boolean }) {
   const fill = LEVEL_VALUES[level] / 4;
   return (
-    <span className="inline-flex items-center gap-1.5 text-muted" title={LEVEL_LABELS[level]}>
+    <span className="inline-flex items-center gap-1.5" title={LEVEL_LABELS[level]}>
       <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
         <defs>
           <clipPath id={`lv-${level}`}>
             <rect x="0" y={14 - 14 * fill} width="14" height={14 * fill} />
           </clipPath>
         </defs>
-        <circle cx="7" cy="7" r="6" fill="none" stroke="white" strokeWidth="1.5" />
-        <circle cx="7" cy="7" r="6" fill="white" clipPath={`url(#lv-${level})`} />
+        <circle cx="7" cy="7" r="6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="7" cy="7" r="6" fill="currentColor" clipPath={`url(#lv-${level})`} />
       </svg>
-      {showLabel && <span className="text-sm">{LEVEL_LABELS[level]}</span>}
+      {showLabel && <span className="text-sm text-muted">{LEVEL_LABELS[level]}</span>}
     </span>
   );
 }

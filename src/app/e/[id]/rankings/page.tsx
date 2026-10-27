@@ -26,7 +26,7 @@ export default function RankingsPage() {
 
   return (
     <>
-      <Header title={finished ? "Final rankings" : "Rankings"} subtitle={event.name} back={`/e/${id}`} />
+      <Header title={finished ? "Final rankings" : "Rankings"} subtitle={event.name} back={`/e/${id}`} wide />
       <Page wide>
         {finished && (
           <div className="mb-6 flex justify-center">
