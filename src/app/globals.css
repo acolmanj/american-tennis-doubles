@@ -1,26 +1,74 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* Charleville LTC: black and white only. */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-ink: #000000;
+  --color-card: #111111;
+  --color-raised: #1a1a1a;
+  --color-line: #3a3a3a;
+  --color-muted: #9a9a9a;
+  --color-chalk: #ffffff;
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #000;
+  color: #fff;
+  font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@utility display {
+  font-family: var(--font-display), system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 800;
+}
+
+@utility btn {
+  @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full border-2 border-white px-6 text-base font-bold uppercase tracking-wider transition active:scale-[0.98] disabled:opacity-40;
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+@utility btn-primary {
+  @apply btn bg-white text-black;
+}
+
+@utility btn-ghost {
+  @apply btn bg-transparent text-white;
+}
+
+@utility btn-small {
+  @apply min-h-10 px-4 text-sm;
+}
+
+@utility field {
+  @apply min-h-12 w-full rounded-xl border-2 border-line bg-card px-4 text-lg text-white outline-none focus:border-white;
+}
+
+@utility label {
+  @apply mb-1 block text-sm font-semibold uppercase tracking-wider text-muted;
+}
+
+@utility card {
+  @apply rounded-2xl border border-line bg-card p-4;
+}
+
+@utility chip {
+  @apply inline-flex min-h-11 items-center justify-center rounded-full border-2 border-line px-4 text-sm font-bold uppercase tracking-wider text-white;
+  &[aria-pressed="true"] {
+    @apply border-white bg-white text-black;
+  }
+}
+
+@utility divider-waves {
+  height: 10px;
+  background-image: radial-gradient(circle at 5px -2px, transparent 5px, #fff 5.5px, #fff 6.5px, transparent 7px);
+  background-size: 10px 10px;
+  opacity: 0.6;
 }
