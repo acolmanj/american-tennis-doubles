@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Court } from "@/components/Court";
 import { RoundControls } from "@/components/RoundControls";
+import { RoundsSummary } from "@/components/RoundsSummary";
 import { ScoreEntry } from "@/components/ScoreEntry";
 import { Header, Loading, Page, SectionTitle, TennisBall } from "@/components/ui";
 import { useOrganizerKey } from "@/lib/storage";
@@ -18,6 +19,17 @@ export default function BoardPage() {
   const organizerKey = useOrganizerKey();
   const [shown, setShown] = useState<number | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
+  const plan = useMemo(
+    () =>
+      rounds.map((r) => ({
+        round: r.round,
+        matches: matches
+          .filter((m) => m.round === r.round)
+          .map((m) => ({ court: m.court, teamA: [m.a1, m.a2] as [string, string], teamB: [m.b1, m.b2] as [string, string] })),
+        sitOuts: sitOuts.filter((s) => s.round === r.round).map((s) => s.player_id),
+      })),
+    [rounds, matches, sitOuts],
+  );
 
   if (loading) return <Loading />;
   if (!event) return <Page>This night couldn&apos;t be found.</Page>;
@@ -80,6 +92,9 @@ export default function BoardPage() {
             )}
 
             <SectionTitle>Whole night</SectionTitle>
+            <div className="mb-4">
+              <RoundsSummary plan={plan} playerById={playerById} />
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] border-collapse text-left">
                 <thead>

@@ -7,6 +7,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Court } from "@/components/Court";
 import { NameField, nameKey } from "@/components/NameField";
 import { RoundControls } from "@/components/RoundControls";
+import { RoundsSummary } from "@/components/RoundsSummary";
 import { ErrorNote, Header, LevelBadge, Loading, Page, SectionTitle } from "@/components/ui";
 import { generateSchedule, PlannedRound } from "@/lib/pairing";
 import { useOrganizerKey } from "@/lib/storage";
@@ -395,6 +396,9 @@ function Schedule({ data, organizerKey }: { data: EventData; organizerKey: strin
             : `${present.length} players are marked here. Draw when everyone has checked in.`}
       </p>
       <ErrorNote message={error} />
+      <div className="mb-6">
+        <RoundsSummary plan={isPreview ? [...saved.filter((r) => started.includes(r.round)), ...showing] : saved} playerById={playerById} />
+      </div>
       <div className="space-y-8">
         {showing
           .filter((r) => !isPreview || r.round >= fromRound)
