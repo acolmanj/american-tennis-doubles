@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import QRCode from "qrcode";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Court } from "@/components/Court";
+import { NameField, nameKey } from "@/components/NameField";
 import { RoundControls } from "@/components/RoundControls";
 import { ErrorNote, Header, LevelBadge, Loading, Page, SectionTitle } from "@/components/ui";
 import { generateSchedule, PlannedRound } from "@/lib/pairing";
@@ -186,7 +187,16 @@ function Players({ data, organizerKey }: { data: EventData; organizerKey: string
         Players · {present.length} here of {active.length} · {present.filter((p) => p.gender === "M").length} men, {present.filter((p) => p.gender === "F").length} women here
       </SectionTitle>
       <form onSubmit={add} className="card mb-4 space-y-3">
-        <input className="field" placeholder="Add a walk-in" value={name} onChange={(e) => setName(e.target.value)} />
+        <NameField
+          placeholder="Add a walk-in"
+          value={name}
+          onChange={setName}
+          onRemembered={(g, l) => {
+            setGender(g);
+            setLevel(l);
+          }}
+          exclude={new Set(active.map((p) => nameKey(p.name)))}
+        />
         <div className="grid grid-cols-2 gap-2">
           <select className="field" value={gender} onChange={(e) => setGender(e.target.value as Gender)} aria-label="Male or female">
             {(["M", "F"] as Gender[]).map((g) => (

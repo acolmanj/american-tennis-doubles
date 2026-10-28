@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { NameField, nameKey } from "@/components/NameField";
 import { ErrorNote, Header, LevelBadge, Loading, Page } from "@/components/ui";
 import { addTokens, setMe } from "@/lib/storage";
 import { rpc } from "@/lib/supabase";
@@ -18,6 +19,7 @@ export default function CheckInPage() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
+  const tonight = useMemo(() => new Set(players.map((p) => nameKey(p.name))), [players]);
   const list = useMemo(() => {
     const q = query.trim().toLowerCase();
     return players.filter((p) => p.status !== "withdrawn" && (!q || p.name.toLowerCase().includes(q)));
@@ -72,7 +74,7 @@ export default function CheckInPage() {
         {walkIn ? (
           <div className="card space-y-4">
             <h2 className="display text-sm">Not on the list</h2>
-            <input className="field" placeholder="Your name" value={walkIn.name} onChange={(e) => setWalkIn({ ...walkIn, name: e.target.value })} autoFocus />
+            <NameField placeholder="Your name" value={walkIn.name} onChange={(name) => setWalkIn((w) => w && { ...w, name })} onRemembered={(gender, level) => setWalkIn((w) => w && { ...w, gender, level })} exclude={tonight} autoFocus />
             <div className="grid grid-cols-2 gap-2">
               {(["M", "F"] as Gender[]).map((g) => (
                 <button key={g} type="button" className="chip" aria-pressed={walkIn.gender === g} onClick={() => setWalkIn({ ...walkIn, gender: g })}>

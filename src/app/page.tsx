@@ -24,7 +24,7 @@ export default function Home() {
       <div className="flex flex-col items-center text-center">
         <Crest size={160} />
         <h1 className="display mt-6 text-2xl">American Doubles</h1>
-        <p className="mt-1 text-muted">A new partner every round</p>
+        <p className="mt-1 text-muted">Play, Mix, Enjoy</p>
       </div>
       <div className="divider-waves my-8" aria-hidden />
       <h2 className="display mb-3 text-sm text-muted">Upcoming nights</h2>

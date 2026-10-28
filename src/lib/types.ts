@@ -73,3 +73,10 @@ export interface SitOutRow {
   round: number;
   player_id: string;
 }
+
+export interface MemberRow {
+  id: string;
+  name: string;
+  gender: Gender;
+  level: Level;
+}

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
+import { NameField, nameKey } from "@/components/NameField";
 import { ErrorNote, Header, Loading, Page } from "@/components/ui";
 import { rpc } from "@/lib/supabase";
 import { Gender, GENDER_LABELS, Level, LEVEL_LABELS, LEVELS } from "@/lib/types";
@@ -18,7 +19,8 @@ const blank = (): Draft => ({ name: "", gender: null, level: null });
 
 export default function SignupPage() {
   const { id } = useParams<{ id: string }>();
-  const { event, loading } = useEventData(id);
+  const { event, players, loading } = useEventData(id);
+  const tonight = useMemo(() => new Set(players.map((p) => nameKey(p.name))), [players]);
   const [drafts, setDrafts] = useState<Draft[]>([blank()]);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string[] | null>(null);
@@ -91,7 +93,7 @@ export default function SignupPage() {
               </div>
               <label className="block">
                 <span className="label">Name</span>
-                <input className="field" value={d.name} onChange={(e) => update(i, { name: e.target.value })} autoComplete={i === 0 ? "name" : "off"} maxLength={80} />
+                <NameField value={d.name} onChange={(name) => update(i, { name })} onRemembered={(gender, level) => update(i, { gender, level })} exclude={tonight} />
               </label>
               <div>
                 <span className="label">Male / Female</span>

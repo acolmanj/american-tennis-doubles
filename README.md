@@ -26,6 +26,8 @@ There is deliberately no timer: the organizer calls time on court and taps Start
 - close games (team levels balanced) and similar levels on a court
 - sit-outs shared equally, balancing men and women
 
+Returning players: every player saved is remembered in `members` (name, Male/Female, level). Typing a known name at signup or check-in suggests it and fills in the rest.
+
 The organizer's "Close games ↔ Meet everyone" slider moves the weights. Redrawing after late arrivals keeps played rounds and counts them as history.
 
 ## Scoring
