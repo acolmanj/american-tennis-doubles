@@ -105,6 +105,11 @@ function Dashboard({ organizerKey }: { organizerKey: string }) {
         <ErrorNote message={error} />
       </form>
 
+      <Link href="/organizer/players" className="card mt-4 flex justify-between gap-3 hover:border-white">
+        <span className="font-semibold">Club players</span>
+        <span className="text-muted">Fix names, Male/Female, levels</span>
+      </Link>
+
       <SectionTitle>All nights</SectionTitle>
       <ul className="space-y-2">
         {events.map((ev) => (
