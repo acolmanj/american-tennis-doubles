@@ -21,12 +21,17 @@ export function Court({ match, playerById, highlightId, onPlayerTap, selectedId,
     const isSelected = id === selectedId;
     const content = (
       <span
-        className={`flex items-center gap-1.5 truncate ${isMe ? "rounded bg-white px-1.5 text-black" : ""} ${
+        className={`flex items-center gap-1.5 ${isMe ? "rounded bg-white px-1.5 text-black" : ""} ${
           isSelected ? "rounded outline-2 outline-offset-2 outline-white outline-dashed" : ""
         }`}
       >
-        {p && !isMe && <LevelBadge level={p.level} />}
-        <span className="truncate">{p?.name ?? "?"}</span>
+        {p && !isMe && (
+          <span className="shrink-0">
+            <LevelBadge level={p.level} />
+          </span>
+        )}
+        {/* Long names wrap rather than being cut off. */}
+        <span className="min-w-0 break-words leading-tight">{p?.name ?? "?"}</span>
       </span>
     );
     return onPlayerTap ? (

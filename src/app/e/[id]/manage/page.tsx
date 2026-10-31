@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import QRCode from "qrcode";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Court } from "@/components/Court";
+import { EntrantPicker } from "@/components/EntrantPicker";
 import { NameField, nameKey } from "@/components/NameField";
 import { RoundControls } from "@/components/RoundControls";
 import { RoundsSummary } from "@/components/RoundsSummary";
@@ -35,11 +36,12 @@ export default function ManagePage() {
     <>
       <Header title={data.event.name} subtitle="Manage night" back={`/e/${id}`} wide />
       <Page wide>
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
           <div>
             <CheckInQr eventId={id} />
             <Settings key={JSON.stringify(data.event)} event={data.event} organizerKey={organizerKey} />
             <Players data={data} organizerKey={organizerKey} />
+            <NightOptions event={data.event} organizerKey={organizerKey} hasDraw={data.rounds.length > 0} />
           </div>
           <div>
             <Schedule data={data} organizerKey={organizerKey} />
@@ -150,12 +152,90 @@ function Settings({ event, organizerKey }: { event: EventRow; organizerKey: stri
   );
 }
 
+function NightOptions({ event, organizerKey, hasDraw }: { event: EventRow; organizerKey: string; hasDraw: boolean }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  async function act(question: string, run: () => Promise<unknown>, done: string) {
+    if (!window.confirm(question)) return;
+    setBusy(true);
+    setMsg(null);
+    try {
+      await run();
+      setMsg(done);
+    } catch (e) {
+      setMsg((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  const reset = (keepDraw: boolean) =>
+    act(
+      keepDraw
+        ? "Clear every score and set all rounds back to not started? The draw stays."
+        : "Clear the draw and every score? Players stay entered and you can draw again.",
+      () => rpc("reset_event", { p_key: organizerKey, p_event_id: event.id, p_keep_draw: keepDraw }),
+      keepDraw ? "Scores cleared." : "Draw and scores cleared. Draw the rounds again when ready.",
+    );
+  const finished = event.status === "finished";
+
+  return (
+    <section>
+      <SectionTitle>Night</SectionTitle>
+      <div className="card space-y-3">
+        <button
+          className="btn-ghost btn-small w-full"
+          disabled={busy}
+          onClick={() =>
+            act(
+              finished ? "Reopen this night for check-in and scores?" : "Mark this night as finished? Signup and check-in close.",
+              () => rpc("save_event", { p_key: organizerKey, p_event: { id: event.id, status: finished ? "live" : "finished" } }),
+              finished ? "Night reopened." : "Night marked as finished.",
+            )
+          }
+        >
+          {finished ? "Reopen night" : "Mark night as finished"}
+        </button>
+        <p className="label pt-2">Fresh start</p>
+        <div className="grid grid-cols-2 gap-2">
+          <button className="btn-ghost btn-small" disabled={busy || !hasDraw} onClick={() => reset(true)}>
+            Clear scores
+          </button>
+          <button className="btn-ghost btn-small" disabled={busy || !hasDraw} onClick={() => reset(false)}>
+            Clear draw and scores
+          </button>
+        </div>
+        <button
+          className="w-full pt-2 text-sm text-muted underline"
+          disabled={busy}
+          onClick={async () => {
+            if (window.prompt(`This deletes ${event.name} with all its players, rounds and scores. Type DELETE to confirm.`) !== "DELETE") return;
+            setBusy(true);
+            try {
+              await rpc("delete_event", { p_key: organizerKey, p_event_id: event.id });
+              router.push("/organizer");
+            } catch (e) {
+              setMsg((e as Error).message);
+              setBusy(false);
+            }
+          }}
+        >
+          Delete this night
+        </button>
+        {msg && <p className="text-muted">{msg}</p>}
+      </div>
+    </section>
+  );
+}
+
 function Players({ data, organizerKey }: { data: EventData; organizerKey: string }) {
   const { event, players } = data;
   const [name, setName] = useState("");
   const [gender, setGender] = useState<Gender>("M");
   const [level, setLevel] = useState<Level>("intermediate");
   const [error, setError] = useState<string | null>(null);
+  const [picking, setPicking] = useState(false);
   const active = players.filter((p) => p.status !== "withdrawn");
   const present = active.filter((p) => p.status === "present");
 
@@ -187,6 +267,13 @@ function Players({ data, organizerKey }: { data: EventData; organizerKey: string
       <SectionTitle>
         Players · {present.length} here of {active.length} · {present.filter((p) => p.gender === "M").length} men, {present.filter((p) => p.gender === "F").length} women here
       </SectionTitle>
+      {picking ? (
+        <EntrantPicker eventId={event!.id} organizerKey={organizerKey} players={players} onClose={() => setPicking(false)} />
+      ) : (
+        <button type="button" className="btn-primary mb-4 w-full" onClick={() => setPicking(true)}>
+          Enter club players
+        </button>
+      )}
       <form onSubmit={add} className="card mb-4 space-y-3">
         <NameField
           placeholder="Add a walk-in"
@@ -219,7 +306,7 @@ function Players({ data, organizerKey }: { data: EventData; organizerKey: string
       <ErrorNote message={error} />
       <ul className="divide-y divide-line rounded-2xl border border-line">
         {active.map((p) => (
-          <li key={p.id} className="flex flex-wrap items-center gap-2 px-3 py-2">
+          <li key={p.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 px-3 py-2">
             <button
               className={`chip min-h-9 px-3 ${p.status === "present" ? "" : "text-muted"}`}
               aria-pressed={p.status === "present"}
@@ -228,7 +315,9 @@ function Players({ data, organizerKey }: { data: EventData; organizerKey: string
             >
               {p.status === "present" ? "Here" : "Not yet"}
             </button>
-            <span className="min-w-0 flex-1 truncate font-semibold">{p.name}</span>
+            {/* Long names take the whole line and push the controls underneath. */}
+            <span className="min-w-[8rem] flex-1 break-words font-semibold">{p.name}</span>
+            <span className="ml-auto flex items-center gap-2">
             <select className="rounded-lg border border-line bg-card px-2 py-1" value={p.gender} onChange={(e) => savePlayer({ id: p.id, gender: e.target.value as Gender })} aria-label={`${p.name} male or female`}>
               <option value="M">M</option>
               <option value="F">F</option>
@@ -246,6 +335,7 @@ function Players({ data, organizerKey }: { data: EventData; organizerKey: string
             <button className="px-2 text-muted" onClick={() => remove(p)} aria-label={`Remove ${p.name}`}>
               ✕
             </button>
+            </span>
           </li>
         ))}
       </ul>
@@ -385,6 +475,11 @@ function Schedule({ data, organizerKey }: { data: EventData; organizerKey: strin
               {rounds.length ? (started.length ? `Redraw from round ${fromRound}` : "Redraw all rounds") : "Draw rounds"}
             </button>
             <RoundControls eventId={event!.id} organizerKey={organizerKey} rounds={rounds} />
+            {rounds.length > 0 && (
+              <Link href={`/e/${event!.id}/scores`} className="btn-ghost btn-small">
+                Scores
+              </Link>
+            )}
           </>
         )}
       </div>
@@ -397,7 +492,7 @@ function Schedule({ data, organizerKey }: { data: EventData; organizerKey: strin
       </p>
       <ErrorNote message={error} />
       <div className="mb-6">
-        <RoundsSummary plan={isPreview ? [...saved.filter((r) => started.includes(r.round)), ...showing] : saved} playerById={playerById} />
+        <RoundsSummary plan={isPreview ? [...saved.filter((r) => started.includes(r.round)), ...showing] : saved} playerById={playerById} bySitOuts />
       </div>
       <div className="space-y-8">
         {showing

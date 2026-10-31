@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { NameField, nameKey } from "@/components/NameField";
-import { ErrorNote, Header, LevelBadge, Loading, Page } from "@/components/ui";
+import { ErrorNote, Header, LevelBadge, Loading, NightClosed, Page } from "@/components/ui";
 import { addTokens, setMe } from "@/lib/storage";
 import { rpc } from "@/lib/supabase";
 import { Gender, GENDER_LABELS, Level, LEVEL_LABELS, LEVELS } from "@/lib/types";
@@ -27,6 +27,7 @@ export default function CheckInPage() {
 
   if (loading) return <Loading />;
   if (!event) return <Page>This night couldn&apos;t be found.</Page>;
+  if (event.status === "finished") return <NightClosed eventId={id} title="Check in" subtitle={event.name} />;
 
   const ids = Object.keys(selected);
 

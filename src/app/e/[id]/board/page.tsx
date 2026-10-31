@@ -145,9 +145,14 @@ export default function BoardPage() {
             Rankings
           </Link>
           {organizerKey && (
-            <Link href={`/e/${id}/manage`} className="btn-ghost btn-small">
-              Manage
-            </Link>
+            <>
+              <Link href={`/e/${id}/scores`} className="btn-ghost btn-small">
+                Scores
+              </Link>
+              <Link href={`/e/${id}/manage`} className="btn-ghost btn-small">
+                Manage
+              </Link>
+            </>
           )}
         </div>
       </Page>

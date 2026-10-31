@@ -77,3 +77,21 @@ export function ErrorNote({ message }: { message: string | null }) {
 export function SectionTitle({ children }: { children: React.ReactNode }) {
   return <h2 className="display mb-3 mt-8 text-sm text-muted">{children}</h2>;
 }
+
+/** Shown on signup and check-in once a night is finished. */
+export function NightClosed({ eventId, title, subtitle }: { eventId: string; title: string; subtitle: string }) {
+  return (
+    <>
+      <Header title={title} subtitle={subtitle} back={`/e/${eventId}`} />
+      <Page>
+        <p className="mb-6 text-lg">This night is over, so signup and check-in are closed.</p>
+        <Link href={`/e/${eventId}/rankings`} className="btn-primary w-full">
+          See the results
+        </Link>
+        <Link href="/" className="btn-ghost mt-3 w-full">
+          Upcoming nights
+        </Link>
+      </Page>
+    </>
+  );
+}

@@ -50,6 +50,8 @@ function Dashboard({ organizerKey }: { organizerKey: string }) {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [name, setName] = useState("American Doubles Night");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [copyFrom, setCopyFrom] = useState("");
+  const [withPlayers, setWithPlayers] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newCode, setNewCode] = useState("");
   const [codeMsg, setCodeMsg] = useState<string | null>(null);
@@ -66,10 +68,18 @@ function Dashboard({ organizerKey }: { organizerKey: string }) {
     e.preventDefault();
     setError(null);
     try {
-      const id = await rpc<string>("save_event", {
-        p_key: organizerKey,
-        p_event: { name, event_date: date, venue: "Charleville LTC" },
-      });
+      const id = copyFrom
+        ? await rpc<string>("copy_event", {
+            p_key: organizerKey,
+            p_from: copyFrom,
+            p_name: name,
+            p_date: date || null,
+            p_with_players: withPlayers,
+          })
+        : await rpc<string>("save_event", {
+            p_key: organizerKey,
+            p_event: { name, event_date: date, venue: "Charleville LTC" },
+          });
       router.push(`/e/${id}/manage`);
     } catch (err) {
       setError((err as Error).message);
@@ -101,6 +111,32 @@ function Dashboard({ organizerKey }: { organizerKey: string }) {
           <span className="label">Date</span>
           <input className="field" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </label>
+        <label className="block">
+          <span className="label">Start from</span>
+          <select
+            className="field"
+            value={copyFrom}
+            onChange={(e) => {
+              setCopyFrom(e.target.value);
+              const from = events.find((ev) => ev.id === e.target.value);
+              if (from) setName(from.name);
+            }}
+          >
+            <option value="">A blank night</option>
+            {events.map((ev) => (
+              <option key={ev.id} value={ev.id}>
+                Copy of {ev.name} · {formatDate(ev.event_date)}
+              </option>
+            ))}
+          </select>
+        </label>
+        {copyFrom && (
+          <label className="flex min-h-12 items-center gap-3">
+            <input type="checkbox" className="h-6 w-6 accent-white" checked={withPlayers} onChange={(e) => setWithPlayers(e.target.checked)} />
+            <span>Copy the players too (all set to Not yet)</span>
+          </label>
+        )}
+        <p className="text-sm text-muted">Next you can pick who&apos;s entered from the club players.</p>
         <button className="btn-primary w-full">Create</button>
         <ErrorNote message={error} />
       </form>

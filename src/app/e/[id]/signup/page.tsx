@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
 import { NameField, nameKey } from "@/components/NameField";
-import { ErrorNote, Header, Loading, Page } from "@/components/ui";
+import { ErrorNote, Header, Loading, NightClosed, Page } from "@/components/ui";
 import { rpc } from "@/lib/supabase";
 import { Gender, GENDER_LABELS, Level, LEVEL_LABELS, LEVELS } from "@/lib/types";
 import { useEventData } from "@/lib/useEventData";
@@ -28,6 +28,7 @@ export default function SignupPage() {
 
   if (loading) return <Loading />;
   if (!event) return <Page>This night couldn&apos;t be found.</Page>;
+  if (event.status === "finished") return <NightClosed eventId={id} title="Sign up" subtitle={event.name} />;
 
   const update = (i: number, patch: Partial<Draft>) => setDrafts((d) => d.map((x, j) => (j === i ? { ...x, ...patch } : x)));
 

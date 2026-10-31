@@ -6,6 +6,8 @@ export interface RoundsSummary {
   usualMatches: number;
   /** Players with more or fewer matches than most, fewest first. */
   different: { playerId: string; matches: number }[];
+  /** Everyone in the draw grouped by how many rounds they sit out, fewest first. */
+  bySitOuts: { sitOuts: number; playerIds: string[] }[];
 }
 
 function mostCommon(values: number[]): number {
@@ -17,8 +19,12 @@ function mostCommon(values: number[]): number {
 
 export function summarizeRounds(plan: PlannedRound[]): RoundsSummary {
   const matches = new Map<string, number>();
+  const sitOuts = new Map<string, number>();
   for (const r of plan) {
-    for (const id of r.sitOuts) matches.set(id, matches.get(id) ?? 0);
+    for (const id of r.sitOuts) {
+      matches.set(id, matches.get(id) ?? 0);
+      sitOuts.set(id, (sitOuts.get(id) ?? 0) + 1);
+    }
     for (const m of r.matches) for (const id of [...m.teamA, ...m.teamB]) matches.set(id, (matches.get(id) ?? 0) + 1);
   }
   const usualMatches = mostCommon([...matches.values()]);
@@ -26,5 +32,11 @@ export function summarizeRounds(plan: PlannedRound[]): RoundsSummary {
     .filter(([, n]) => n !== usualMatches)
     .map(([playerId, n]) => ({ playerId, matches: n }))
     .sort((a, b) => a.matches - b.matches);
-  return { rounds: plan.length, usualMatches, different };
+  const groups = new Map<number, string[]>();
+  for (const id of matches.keys()) {
+    const n = sitOuts.get(id) ?? 0;
+    groups.set(n, [...(groups.get(n) ?? []), id]);
+  }
+  const bySitOuts = [...groups].sort((a, b) => a[0] - b[0]).map(([n, playerIds]) => ({ sitOuts: n, playerIds }));
+  return { rounds: plan.length, usualMatches, different, bySitOuts };
 }

@@ -17,13 +17,20 @@ export default function EventHome() {
   const present = active.filter((p) => p.status === "present").length;
   const men = active.filter((p) => p.gender === "M").length;
 
-  const links = [
-    { href: `/e/${id}/me`, label: "My night", primary: true },
-    { href: `/e/${id}/checkin`, label: "Check in" },
-    { href: `/e/${id}/signup`, label: "Sign up" },
-    { href: `/e/${id}/board`, label: "All rounds" },
-    { href: `/e/${id}/rankings`, label: "Rankings" },
-  ];
+  // Signing up and checking in are only for nights still to come or in play.
+  const open = event.status !== "finished";
+  const links = open
+    ? [
+        { href: `/e/${id}/me`, label: "My night", primary: true },
+        { href: `/e/${id}/checkin`, label: "Check in" },
+        { href: `/e/${id}/signup`, label: "Sign up" },
+        { href: `/e/${id}/board`, label: "All rounds" },
+        { href: `/e/${id}/rankings`, label: "Rankings" },
+      ]
+    : [
+        { href: `/e/${id}/rankings`, label: "Rankings", primary: true },
+        { href: `/e/${id}/board`, label: "All rounds" },
+      ];
 
   return (
     <>
@@ -34,6 +41,7 @@ export default function EventHome() {
           <Stat value={present} label="Here" />
           <Stat value={`${men}/${active.length - men}`} label="Men/Women" />
         </div>
+        {!open && <p className="mt-4 text-lg font-semibold">This night is over. Here are the results.</p>}
         <p className="mt-4 text-muted">
           {event.courts} courts · {event.rounds} rounds · about {event.round_minutes} minutes each with a {event.break_minutes} minute break
         </p>

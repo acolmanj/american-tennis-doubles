@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState } from "react";
 import { Court } from "@/components/Court";
 import { ScoreEntry } from "@/components/ScoreEntry";
 import { Header, Loading, Page, SectionTitle, TennisBall } from "@/components/ui";
-import { meKey, parseTokens, setMe, tokensKey, useStoredValue } from "@/lib/storage";
+import { clearMe, meKey, parseTokens, setMe, tokensKey, useStoredValue } from "@/lib/storage";
 import { MatchRow, RoundRow } from "@/lib/types";
 import { currentRound, useEventData } from "@/lib/useEventData";
 import { useStandings } from "@/lib/useStandings";
@@ -28,6 +28,7 @@ export default function MyNightPage() {
 function MyNight() {
   const { id } = useParams<{ id: string }>();
   const search = useSearchParams();
+  const router = useRouter();
   const data = useEventData(id);
   const { event, players, rounds, matches, sitOuts, playerById, loading } = data;
   const standings = useStandings(players, matches);
@@ -42,11 +43,30 @@ function MyNight() {
     setMe(id, pid);
     setChosen(pid);
   };
+  const changePlayer = () => {
+    clearMe(id);
+    setChosen(null);
+    router.replace(`/e/${id}/me`);
+  };
 
   if (loading) return <Loading />;
   if (!event) return <Page>This night couldn&apos;t be found.</Page>;
 
   const me = meId ? playerById.get(meId) : undefined;
+  const open = event.status !== "finished";
+  if (!me && !open) {
+    return (
+      <>
+        <Header title="My night" subtitle={event.name} back={`/e/${id}`} />
+        <Page>
+          <p className="mb-6 text-lg">This night is over.</p>
+          <Link href={`/e/${id}/rankings`} className="btn-primary w-full">
+            See the results
+          </Link>
+        </Page>
+      </>
+    );
+  }
   if (!me) {
     return (
       <>
@@ -214,6 +234,25 @@ function MyNight() {
             Rankings
           </Link>
         </div>
+
+        {open && (
+          <>
+            <SectionTitle>Not {me.name}?</SectionTitle>
+            <div className="grid gap-3">
+              <button className="btn-ghost btn-small" onClick={changePlayer}>
+                Choose a different player
+              </button>
+              <div className="grid grid-cols-2 gap-3">
+                <Link href={`/e/${id}/checkin`} className="btn-ghost btn-small">
+                  Check in more players
+                </Link>
+                <Link href={`/e/${id}/signup`} className="btn-ghost btn-small">
+                  Sign up more players
+                </Link>
+              </div>
+            </div>
+          </>
+        )}
       </Page>
     </>
   );

@@ -8,7 +8,10 @@ const players = (n: number): PairingPlayer[] =>
 describe("summarizeRounds", () => {
   it("names no one when everyone plays the same number of matches", () => {
     const plan = generateSchedule(players(25), { courts: 5, rounds: 5, variety: 50, mixed: true, seed: 1 });
-    expect(summarizeRounds(plan)).toEqual({ rounds: 5, usualMatches: 4, different: [] });
+    const s = summarizeRounds(plan);
+    expect(s).toMatchObject({ rounds: 5, usualMatches: 4, different: [] });
+    expect(s.bySitOuts).toEqual([{ sitOuts: 1, playerIds: expect.any(Array) }]);
+    expect(s.bySitOuts[0].playerIds).toHaveLength(25);
   });
 
   it("names only players whose match count differs from most", () => {
@@ -33,6 +36,11 @@ describe("summarizeRounds", () => {
       { playerId: "f", matches: 0 },
       { playerId: "e", matches: 1 },
       { playerId: "d", matches: 2 },
+    ]);
+    expect(s.bySitOuts).toEqual([
+      { sitOuts: 0, playerIds: ["a", "b", "c", "e"] },
+      { sitOuts: 1, playerIds: ["d"] },
+      { sitOuts: 3, playerIds: ["f"] },
     ]);
   });
 });

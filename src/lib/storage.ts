@@ -72,3 +72,7 @@ export function addTokens(eventId: string, tokens: Record<string, string>) {
 export function setMe(eventId: string, playerId: string) {
   write(meKey(eventId), playerId);
 }
+
+export function clearMe(eventId: string) {
+  write(meKey(eventId), null);
+}

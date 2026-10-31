@@ -9,6 +9,7 @@ import { EventRow } from "@/lib/types";
 
 export default function Home() {
   const [events, setEvents] = useState<EventRow[] | null>(null);
+  const [recent, setRecent] = useState<EventRow[]>([]);
 
   useEffect(() => {
     supabase
@@ -17,6 +18,13 @@ export default function Home() {
       .neq("status", "finished")
       .order("event_date", { ascending: true, nullsFirst: false })
       .then(({ data }) => setEvents((data as EventRow[]) ?? []));
+    supabase
+      .from("events")
+      .select("*")
+      .eq("status", "finished")
+      .order("event_date", { ascending: false, nullsFirst: false })
+      .limit(5)
+      .then(({ data }) => setRecent((data as EventRow[]) ?? []));
   }, []);
 
   return (
@@ -51,6 +59,24 @@ export default function Home() {
             </li>
           ))}
         </ul>
+      )}
+      {recent.length > 0 && (
+        <>
+          <h2 className="display mb-3 mt-10 text-sm text-muted">Recent results</h2>
+          <ul className="space-y-2">
+            {recent.map((e) => (
+              <li key={e.id}>
+                <Link href={`/e/${e.id}`} className="card flex items-center justify-between gap-3 py-3 hover:border-white">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold">{e.name}</p>
+                    <p className="text-sm text-muted">{formatDate(e.event_date)}</p>
+                  </div>
+                  <span className="shrink-0 text-sm text-muted">Results ›</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
       <div className="mt-auto pt-12 text-center">
         <Link href="/organizer" className="text-sm text-muted underline underline-offset-4">
